@@ -1,0 +1,21 @@
+# Ignore files with no extensions
+*
+!/**/
+!*.*
+
+# Not ignored: .c, .h, Makefile
+!*.c
+!*.h
+!Makefile
+
+# Object files
+*.o
+
+# Emacs Save Files
+*~
+\#*\#
+.\#*
+.backup
+
+# Debugging Symbols
+*.dSYM
