@@ -9,7 +9,7 @@
 !Makefile
 
 # Object files
-*.o
+!*.o
 
 # Emacs Save Files
 *~
