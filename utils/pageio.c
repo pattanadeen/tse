@@ -44,30 +44,25 @@ webpage_t *pageload(int id, char *dirnm) {
     }
 
     FILE * fp;
-    char str1[2048], str2[10], str3[10];
+    char url[2048], depth[10], HTMLlen[10];
     char *string = (char*) calloc(1, sizeof(char));
     fp = fopen(filename, "r");
     // void *temp;
-    fscanf(fp, "%s %s %s", str1, str2, str3);
+    fscanf(fp, "%s %s %s", url, depth, HTMLlen);
 
     char ch = 0;
 
     int i = 1;
     while( (ch=fgetc(fp)) != EOF ){
         i++;
-        string = (char *) realloc(string, sizeof(char)*i);
+        string = (char *) realloc(string, sizeof(char) * i);
         string[i-2] = ch;
         string[i-1] = '\0';
     }
 
     memmove(&string[0], &string[1], strlen(string));
 
-    // printf("Read String1 |%s|\n", str1);
-    // printf("Read String1 |%s|\n", str2);
-    // printf("Read String1 |%s|\n", str3);
-    // printf("Read String1 |%s|\n", string);
-
-    webpage_t *pagep = webpage_new(str1, atoi(str2), string);
+    webpage_t *pagep = webpage_new(url, atoi(depth), string);
 
     fclose(fp);
 
