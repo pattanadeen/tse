@@ -32,12 +32,10 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
 }
 
 webpage_t *pageload(int id, char *dirnm) {
-    // printf("len of dirnm = %ld\n", strlen(dirnm));
     char filename[2];
     sprintf(filename, "%s%d", dirnm, id);
-    // printf("len of filename = %ld\n", strlen(filename));
-    int result = access(filename, F_OK);
 
+    int result = access(filename, F_OK);
     if (result != 0) {
         printf("File does not exist!!\n");
         return NULL;
@@ -47,8 +45,7 @@ webpage_t *pageload(int id, char *dirnm) {
     char url[2048], depth[10], HTMLlen[10];
     char *string = (char*) calloc(1, sizeof(char));
     fp = fopen(filename, "r");
-    // void *temp;
-    fscanf(fp, "%s %s %s", url, depth, HTMLlen);
+    fscanf(fp, "%s\n%s\n%s\n", url, depth, HTMLlen);
 
     char ch = 0;
 
@@ -59,8 +56,6 @@ webpage_t *pageload(int id, char *dirnm) {
         string[i-2] = ch;
         string[i-1] = '\0';
     }
-
-    memmove(&string[0], &string[1], strlen(string));
 
     webpage_t *pagep = webpage_new(url, atoi(depth), string);
 
