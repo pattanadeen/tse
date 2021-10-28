@@ -5,19 +5,45 @@
 #include "pageio.h"
 #include "webpage.h"
 #include "hash.h"
+#include "queue.h"
 
+int sum;
+
+/*
+ *  Step 3
+ *
 typedef struct word {
 	char *word;
 	int count;
 } word_t;
+ *
+ *  Step 3
+ */
 
-bool searchfn(void* elementp, const void* keyp){
+typedef struct word {
+	char *word;
+	queue_t *qdocument;
+} word_t;
+
+typedef struct doc {
+	int id;
+	int count;
+} doc_t;
+
+doc_t *make_doc(int docID, int count) {
+    doc_t *docp = (doc_t*) malloc(sizeof(doc_t));
+    docp->id = docID;
+    docp->count = count;
+    return docp;
+}
+
+bool search_hash(void* elementp, const void* keyp){
     if(keyp == NULL || elementp == NULL){
         printf("NULL value");
         return false;
     }
-    
-    if(strcmp(webpage_getURL(elementp), (char *)keyp) == 0) {
+
+    if(elementp == keyp){
         return true;
     }
     else{
@@ -25,14 +51,46 @@ bool searchfn(void* elementp, const void* keyp){
     }
 }
 
-void SumHash(void *elementp){
+bool search_docID(void* elementp, const void* keyp){
+    if(keyp == NULL || elementp == NULL){
+        printf("NULL value");
+        return false;
+    }
+    
+    if(((doc_t *) elementp)->id == *((int *) keyp)) {
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+/*
+ *  Step 3
+ *
+void sumwords(void *elementp){
     word_t *wordp = (word_t*) elementp;
-    printf("%d\n", wordp->count);
+    sum = sum + wordp->count;
+}
+ *
+ *  Step 3
+ */
+
+void qsumwords(void *elementp) {
+    doc_t *docp = (doc_t*) elementp;
+    sum = sum + docp->count;
+}
+
+void sumwords(void *elementp){
+    word_t *wordp = (word_t*) elementp;
+    qapply(wordp->qdocument, qsumwords);
 }
 
 void free_word(void *elementp){
     word_t *wordp = (word_t*) elementp;
+
     free(wordp->word);
+    qclose(wordp->qdocument);
 }
 
 int NormalizeWord(char *word){
@@ -55,11 +113,13 @@ int NormalizeWord(char *word){
 }
 
 int main(int argc, char *argv[]) {
-    webpage_t *pagep = pageload(1, "../pages-depth3/");
-    char *word;
-    int pos = 0;
+    int id = atoi(argv[1]);
+    
     hashtable_t *htp = hopen(10);
 
+    /*
+     *  Step 3
+     *
     while ((pos = webpage_getNextWord(pagep, pos, &word)) > 0){
         if(NormalizeWord(word) == 0){
             // printf("%s\n", word);
@@ -80,14 +140,55 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    happy(htp, SumHash);
+    sum = 0;
+    happly(htp, sumwords);
+    printf("%d", sum);
+     *
+     *  Step 3
+     */
 
-    webpage_delete(pagep);
-    free(pagep);
-    free(word);
+    int i;
+    for (i = 1; i <= id; i++) {
+        webpage_t *pagep = pageload(i, "../pages-depth3/");
+        char *word;
+        int pos = 0;
+
+        while ((pos = webpage_getNextWord(pagep, pos, &word)) > 0){
+            if(NormalizeWord(word) == 0){
+                word_t *words = hsearch(htp, search_hash, word, strlen(word));
+                doc_t *document;
+                if(words != NULL){
+                    if ((document = (doc_t *) qsearch(words->qdocument, search_docID, &i)) != NULL) {
+                        document->count = document->count + 1;
+                    }
+                    else {
+                        qput(words->qdocument, make_doc(i, 1));
+                    }
+                }
+                else{
+                    word_t *wordp = malloc(sizeof(word_t));
+                    wordp->word = word;
+                    wordp->qdocument = qopen();
+
+                    qput(wordp->qdocument, make_doc(i, 1));
+                    hput(htp, (void *) wordp, word, strlen(word));
+                }
+            } else {
+                free(word);
+            }
+        }
+
+        webpage_delete(pagep);
+        free(pagep);
+        free(word);
+    }    
+    
+    sum = 0;
+    happly(htp, sumwords);
+    printf("%d", sum);
 
     happly(htp, free_word);
     hclose(htp);
 
-    return 0;
+    exit(EXIT_SUCCESS);
 }
