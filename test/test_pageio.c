@@ -15,7 +15,6 @@ void print_page(webpage_t *pagep) {
 }
 
 int main(int argc, char *argv[]) {
-
     webpage_t *pagep = pageload(20, "../pages-depth3/");
     pagesave(pagep, 200, "../pages-depth3/");
 
