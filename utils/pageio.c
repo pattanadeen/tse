@@ -9,7 +9,7 @@
 #include "webpage.h"
 
 int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
-    char filename[strlen(dirnm) + (int)(ceil(log10(id)))];
+    char filename[strlen(dirnm)];
     sprintf(filename, "%s%d", dirnm, id);
     int result = access(filename, F_OK);
 
@@ -32,8 +32,10 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
 }
 
 webpage_t *pageload(int id, char *dirnm) {
-    char filename[strlen(dirnm) + 1];
+    // printf("len of dirnm = %ld\n", strlen(dirnm));
+    char filename[2];
     sprintf(filename, "%s%d", dirnm, id);
+    // printf("len of filename = %ld\n", strlen(filename));
     int result = access(filename, F_OK);
 
     if (result != 0) {
@@ -42,18 +44,33 @@ webpage_t *pageload(int id, char *dirnm) {
     }
 
     FILE * fp;
-    char str1[100], str2[100], str3[100], str4[1000];
+    char str1[2048], str2[10], str3[10];
+    char *string = (char*) calloc(1, sizeof(char));
     fp = fopen(filename, "r");
-
+    // void *temp;
     fscanf(fp, "%s %s %s", str1, str2, str3);
-    fgets(str4, 1000, fp);
-    printf("Read String1 |%s|\n", str1);
-    printf("Read String1 |%s|\n", str2);
-    printf("Read String1 |%s|\n", str3);
-    printf("Read String1 |%s|\n", str4);
+
+    char ch = 0;
+
+    int i = 1;
+    while( (ch=fgetc(fp)) != EOF ){
+        i++;
+        string = (char *) realloc(string, sizeof(char)*i);
+        string[i-2] = ch;
+        string[i-1] = '\0';
+    }
+
+    memmove(&string[0], &string[1], strlen(string));
+
+    // printf("Read String1 |%s|\n", str1);
+    // printf("Read String1 |%s|\n", str2);
+    // printf("Read String1 |%s|\n", str3);
+    // printf("Read String1 |%s|\n", string);
+
+    webpage_t *pagep = webpage_new(str1, atoi(str2), string);
 
     fclose(fp);
 
-    return NULL;
-    // webpage_t *pagep = webpage_new("https://thayer.github.io/engs50/", 0, NULL);
+    return pagep;
+    
 }
