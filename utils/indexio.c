@@ -9,7 +9,6 @@
 #include "queue.h"
 
 char *string;
-int i;
 
 typedef struct word {
 	char *word;
@@ -23,17 +22,26 @@ typedef struct doc {
 
 void save_doc(void *elementp) {
     doc_t *docp = (doc_t *) elementp;
-    sprintf(string, "%d %d ", docp->id, docp->count);
+    char id[10], count[10];
+
+    sprintf(id, "%d ", docp->id);
+    sprintf(count, "%d ", docp->count);
+
+    string = (char *) realloc(string, sizeof(char) * (strlen(string) + strlen(id) + strlen(count) + 1));
+    strcat(string, id);
+    strcat(string, count);
 }
 
 void save_word(void *elementp) {
     word_t *wordp = (word_t*) elementp;
-    string = (char *) realloc(string, sizeof(char) * 1000000);
-    sprintf(string, "%s%s ", string, wordp->word);
-    // exit(EXIT_SUCCESS);
 
-    // // qapply(wordp->qdocument, save_doc);
-    // sprintf(string, "%s\n", string);
+    string = (char *) realloc(string, sizeof(char) * (strlen(string) + strlen(wordp->word) + 2));
+    strcat(strcat(string, wordp->word), " ");
+
+    qapply(wordp->qdocument, save_doc);
+
+    string = (char *) realloc(string, sizeof(char) * (strlen(string) + 2));
+    strcat(string, "\n");
 }
 
 int32_t indexsave(hashtable_t *htp, char *indexnm, char *dirnm) {
@@ -50,7 +58,6 @@ int32_t indexsave(hashtable_t *htp, char *indexnm, char *dirnm) {
     fp = fopen(filename, "w");
 
     string = (char*) calloc(1, sizeof(char));
-    i = 0;
     happly(htp, save_word);
 
     fprintf(fp, "%s", string);

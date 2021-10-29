@@ -38,13 +38,13 @@ doc_t *make_doc(int docID, int count) {
     return docp;
 }
 
-bool search_hash(void* elementp, const void* keyp){
+bool search_word(void* elementp, const void* keyp) {
     if(keyp == NULL || elementp == NULL){
         printf("NULL value");
         return false;
     }
 
-    if(elementp == keyp){
+    if(strcmp(((word_t *) elementp)->word, (char *) keyp) == 0) {
         return true;
     }
     else{
@@ -52,7 +52,7 @@ bool search_hash(void* elementp, const void* keyp){
     }
 }
 
-bool search_docID(void* elementp, const void* keyp){
+bool search_doc(void* elementp, const void* keyp) {
     if(keyp == NULL || elementp == NULL){
         printf("NULL value");
         return false;
@@ -156,10 +156,10 @@ int main(int argc, char *argv[]) {
 
         while ((pos = webpage_getNextWord(pagep, pos, &word)) > 0){
             if(NormalizeWord(word) == 0){
-                word_t *words = hsearch(htp, search_hash, word, strlen(word));
+                word_t *words = hsearch(htp, search_word, word, strlen(word));
                 doc_t *document;
                 if(words != NULL){
-                    if ((document = (doc_t *) qsearch(words->qdocument, search_docID, &i)) != NULL) {
+                    if ((document = (doc_t *) qsearch(words->qdocument, search_doc, &i)) != NULL) {
                         document->count = document->count + 1;
                     }
                     else {
