@@ -30,8 +30,6 @@ void save_word(void *elementp) {
     word_t *wordp = (word_t*) elementp;
     string = (char *) realloc(string, sizeof(char) * 1000000);
     sprintf(string, "%s%s ", string, wordp->word);
-    i = i + strlen(wordp->word);
-    string[i-1] = '\0';
     // exit(EXIT_SUCCESS);
 
     // // qapply(wordp->qdocument, save_doc);
