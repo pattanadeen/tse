@@ -6,6 +6,7 @@
 #include "webpage.h"
 #include "hash.h"
 #include "queue.h"
+#include "indexio.h"
 
 int sum;
 
@@ -183,9 +184,11 @@ int main(int argc, char *argv[]) {
         free(word);
     }    
     
-    sum = 0;
-    happly(htp, sumwords);
-    printf("%d", sum);
+    // sum = 0;
+    // happly(htp, sumwords);
+    // printf("%d", sum);
+
+    indexsave(htp, "indexnm", "../indices/");
 
     happly(htp, free_word);
     hclose(htp);
