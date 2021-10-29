@@ -38,13 +38,13 @@ doc_t *make_doc(int docID, int count) {
     return docp;
 }
 
-bool search_word(void* elementp, const void* keyp) {
+bool search_word(void* elementp, const void* keyp){
     if(keyp == NULL || elementp == NULL){
         printf("NULL value");
         return false;
     }
 
-    if(strcmp(((word_t *) elementp)->word, (char *) keyp) == 0) {
+    if(strcmp(((word_t *) elementp)->word, (char *)keyp) == 0) {
         return true;
     }
     else{
@@ -52,7 +52,7 @@ bool search_word(void* elementp, const void* keyp) {
     }
 }
 
-bool search_doc(void* elementp, const void* keyp) {
+bool search_doc(void* elementp, const void* keyp){
     if(keyp == NULL || elementp == NULL){
         printf("NULL value");
         return false;
@@ -165,6 +165,7 @@ int main(int argc, char *argv[]) {
                     else {
                         qput(words->qdocument, make_doc(i, 1));
                     }
+                    free(word);
                 }
                 else{
                     word_t *wordp = malloc(sizeof(word_t));

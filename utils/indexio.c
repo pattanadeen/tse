@@ -20,7 +20,7 @@ typedef struct doc {
 	int count;
 } doc_t;
 
-void save_doc(void *elementp) {
+static void save_doc(void *elementp) {
     doc_t *docp = (doc_t *) elementp;
     char id[10], count[10];
 
@@ -32,7 +32,7 @@ void save_doc(void *elementp) {
     strcat(string, count);
 }
 
-void save_word(void *elementp) {
+static void save_word(void *elementp) {
     word_t *wordp = (word_t*) elementp;
 
     string = (char *) realloc(string, sizeof(char) * (strlen(string) + strlen(wordp->word) + 2));
