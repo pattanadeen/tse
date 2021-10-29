@@ -59,7 +59,11 @@ int32_t indexsave(hashtable_t *htp, char *indexnm, char *dirnm) {
 
     string = (char*) calloc(1, sizeof(char));
     happly(htp, save_word);
-
+    
+    size_t ln = strlen(string) - 1;
+    if (*string && string[ln] == '\n') 
+    string[ln] = '\0';
+    
     fprintf(fp, "%s", string);
 
     fclose(fp);

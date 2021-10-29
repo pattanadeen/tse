@@ -114,6 +114,10 @@ int NormalizeWord(char *word){
 }
 
 int main(int argc, char *argv[]) {
+    if (argv[1] == NULL){
+        printf("Please insert id file\n");
+        exit(EXIT_FAILURE);
+    }
     int id = atoi(argv[1]);
     
     hashtable_t *htp = hopen(10);
