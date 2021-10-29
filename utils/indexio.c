@@ -8,7 +8,7 @@
 #include "hash.h"
 #include "queue.h"
 
-char *string
+char *string;
 int i;
 
 typedef struct word {
@@ -28,7 +28,7 @@ void save_doc(void *elementp) {
 
 void save_word(void *elementp) {
     word_t *wordp = (word_t*) elementp;
-    string = (char *) realloc(string, sizeof(char) * (strlen(string) + strlen(wordp->word)));
+    string = (char *) realloc(string, sizeof(char) * 1000000);
     sprintf(string, "%s%s ", string, wordp->word);
     i = i + strlen(wordp->word);
     string[i-1] = '\0';
