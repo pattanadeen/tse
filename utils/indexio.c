@@ -101,7 +101,7 @@ hashtable_t *indexload(char *indexnm, char*dirnm){
         // printf("%d", spaces);
 
         char *ptr = strtok(str, " ");
-        char *w = malloc(sizeof(char *));
+        char *w = (char *) calloc(strlen(ptr) + 1, sizeof(char));
         strcpy(w, ptr);
         printf("%s\n",w);
         int j ;
