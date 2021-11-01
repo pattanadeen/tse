@@ -103,7 +103,7 @@ hashtable_t *indexload(char *indexnm, char*dirnm){
         char *ptr = strtok(str, " ");
         char *w = (char *) calloc(strlen(ptr) + 1, sizeof(char));
         strcpy(w, ptr);
-        printf("%s\n",w);
+        // printf("%s\n",w);
         int j ;
         word_t *wordp = malloc(sizeof(word_t));
         wordp->word = w;
@@ -113,12 +113,12 @@ hashtable_t *indexload(char *indexnm, char*dirnm){
                 char id[1000], count[1000];
                 ptr = strtok(NULL, " "); //ptr is pointing at id
                 strcpy(id,ptr);
-                printf("%s\n",id);
+                // printf("%s\n",id);
                 ptr = strtok(NULL, " "); //ptr is pointing at count now
                 strcpy(count,ptr);
-                printf("%s\n",count);
-                printf("id is %s\n",id);
-                printf("count is %s\n",count);
+                // printf("%s\n",count);
+                // printf("id is %s\n",id);
+                // printf("count is %s\n",count);
                 qput(wordp->qdocument, make_doc(atoi(id), atoi(count)));
         }
         hput(ht, (void *) wordp, w, strlen(w));
