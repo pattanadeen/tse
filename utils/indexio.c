@@ -3,7 +3,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
-
+#include <ctype.h>
 #include "indexio.h"
 #include "hash.h"
 #include "queue.h"
@@ -19,6 +19,13 @@ typedef struct doc {
 	int id;
 	int count;
 } doc_t;
+
+static doc_t *make_doc(int docID, int count) {
+    doc_t *docp = (doc_t*) malloc(sizeof(doc_t));
+    docp->id = docID;
+    docp->count = count;
+    return docp;
+}
 
 static void save_doc(void *elementp) {
     doc_t *docp = (doc_t *) elementp;
@@ -70,4 +77,53 @@ int32_t indexsave(hashtable_t *htp, char *indexnm, char *dirnm) {
     free(string);
 
     return 0;
+}
+
+hashtable_t *indexload(char *indexnm, char*dirnm){
+    char filename[16];
+    sprintf(filename, "%s%s", dirnm, indexnm);
+    int result = access(filename, F_OK);
+    if (result != 0) {
+        printf("File does not exist!!\n");
+        return NULL;
+    }
+    FILE * fp;
+    fp = fopen(filename, "r");
+    hashtable_t *ht = hopen(10);
+    char str[1000];
+    while ( fgets (str, 1000, fp)!=NULL ) {
+        int i, spaces = 0;
+        for(i = 0; str[i] != '\0'; i++){
+            if (str[i] == ' '){
+                spaces++;
+            }
+        }
+        // printf("%d", spaces);
+
+        char *ptr = strtok(str, " ");
+        char *w = malloc(sizeof(char *));
+        strcpy(w, ptr);
+        printf("%s\n",w);
+        int j ;
+        word_t *wordp = malloc(sizeof(word_t));
+        wordp->word = w;
+        wordp->qdocument = qopen();
+
+        for ( j = 0 ; j < (spaces-1)/2 ; j++){
+                char id[1000], count[1000];
+                ptr = strtok(NULL, " "); //ptr is pointing at id
+                strcpy(id,ptr);
+                printf("%s\n",id);
+                ptr = strtok(NULL, " "); //ptr is pointing at count now
+                strcpy(count,ptr);
+                printf("%s\n",count);
+                printf("id is %s\n",id);
+                printf("count is %s\n",count);
+                qput(wordp->qdocument, make_doc(atoi(id), atoi(count)));
+        }
+        hput(ht, (void *) wordp, w, strlen(w));
+    }
+
+    fclose(fp);
+    return ht;
 }
