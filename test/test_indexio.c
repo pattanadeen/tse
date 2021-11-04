@@ -5,11 +5,11 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#include "indexio.h"
-#include "pageio.h"
-#include "webpage.h"
-#include "queue.h"
-#include "hash.h"
+#include <indexio.h>
+#include <pageio.h>
+#include <webpage.h>
+#include <queue.h>
+#include <hash.h>
 
 typedef struct word {
 	char *word;

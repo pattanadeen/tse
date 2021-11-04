@@ -4,8 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "pageio.h"
-#include "webpage.h"
+#include <pageio.h>
+#include <webpage.h>
 
 void print_page(webpage_t *pagep) {
     printf("URL: %s\n", webpage_getURL(pagep));
