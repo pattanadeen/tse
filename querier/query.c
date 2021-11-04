@@ -5,6 +5,8 @@
 
 #include <indexio.h>
 #include <queue.h>
+#include <webpage.h>
+#include <pageio.h>
 
 typedef struct word {
 	char *word;
@@ -15,6 +17,34 @@ typedef struct doc {
 	int id;
 	int count;
 } doc_t;
+
+typedef struct rank {
+	int rank;
+	int id;
+    char url[2048];
+} rank_t;
+
+static rank_t *make_rank(int rank, int id, char *url) {
+    rank_t *rankp = (rank_t*) malloc(sizeof(rank_t));
+    
+    rankp->rank = rank;
+    rankp->id = id;
+    strcpy(rankp->url, url);
+
+    return rankp;
+}
+
+static void print_rank(void *elementp) {
+    rank_t *rankp = (rank_t *) elementp;
+    printf("rank: %d: doc: %d : %s\n", rankp->rank, rankp->id, rankp->url);
+}
+
+static void free_word(void *elementp){
+    word_t *wordp = (word_t*) elementp;
+
+    free(wordp->word);
+    qclose(wordp->qdocument);
+}
 
 static bool search_word(void* elementp, const void* keyp){
     if(keyp == NULL || elementp == NULL){
@@ -75,7 +105,7 @@ static int normalize_sentence(char *str) {
     return 0;
 }
 
-/* Step 1
+/*  Step 1
 int main(int argc, char *argv[]) {
     while (1) {
         char *str = (char*) malloc(sizeof(char));
@@ -110,7 +140,7 @@ int main(int argc, char *argv[]) {
 }
 */
 
-
+/*  Step 2
 int main(int argc, char *argv[]) {
     char *str = (char*) malloc(sizeof(char));
     char cha;
@@ -138,8 +168,8 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }    
 
-    int id = 1, rank = 0;
-    hashtable_t *htp = indexload("indexnmq", "../indices/");
+    int id = 1, rank = -1;
+    hashtable_t *htp = indexload("indexnmqs2", "../indices/");
 
     const char s[2] = " ";
     char *word = strtok(str, s);
@@ -148,6 +178,8 @@ int main(int argc, char *argv[]) {
 
         if (wordp == NULL) {
             word = strtok(NULL, s);
+            rank = 0;
+            printf( "%s:%d ", word, rank);
             continue;
         }
 
@@ -155,13 +187,14 @@ int main(int argc, char *argv[]) {
 
         if (docp == NULL) {
             word = strtok(NULL, s);
+            rank = 0;
+            printf( "%s:%d ", word, rank);
             continue;
         }
 
-        if (rank == 0 || docp->count < rank) {
+        if (rank == -1 || docp->count < rank) {
             rank = docp->count;
         }
-        // printf("%s\n", word);
 
         printf( "%s:%d ", word, docp->count);
         word = strtok(NULL, s);
@@ -171,3 +204,88 @@ int main(int argc, char *argv[]) {
     
     free(str);
 }
+*/
+
+/*  Step 3
+int main(int argc, char *argv[]) {
+    char *str = (char*) malloc(sizeof(char));
+    char cha;
+    int i = 1;
+
+    while (1) {
+        if (scanf("%c", &cha) == -1) {
+            free(str);
+            exit(EXIT_SUCCESS);
+        }
+
+        i++;
+        str = (char *) realloc(str, sizeof(char) * i);
+        str[i-2] = cha;
+        str[i-1] = '\0';
+
+        if (cha == '\n') {
+            break;
+        }            
+    }
+
+    if (normalize_sentence(str) == -1) {
+        printf("[invalid query]\n");
+        free(str);
+        exit(EXIT_FAILURE);
+    }
+    else {
+        printf("%s\n", str);
+    }
+
+    int last_id = 82;
+    hashtable_t *htp = indexload("indexnm", "../indices/");
+    queue_t *qp = qopen();
+
+    const char s[2] = " ";
+    int id;
+    for (id = 1; id <= last_id; id++) {
+        int rank = -1;
+        char sentence[strlen(str) + 1];
+        strcpy(sentence, str);
+        char *word = strtok(sentence, s);
+
+        while(word != NULL) {
+            word_t *wordp = hsearch(htp, search_word, word, strlen(word));
+
+            if (wordp == NULL) {
+                word = strtok(NULL, s);
+                rank = 0;
+                continue;
+            }
+
+            doc_t *docp = qsearch(wordp->qdocument, search_doc, &id);
+
+            if (docp == NULL) {
+                word = strtok(NULL, s);
+                rank = 0;
+                continue;
+            }
+
+            if (rank == -1 || docp->count < rank) {
+                rank = docp->count;
+            }
+
+            word = strtok(NULL, s);
+        }
+
+        webpage_t *pagep = pageload(id, "../pages-depth3/");
+        rank_t *rankp = make_rank(rank, id, webpage_getURL(pagep));
+
+        qput(qp, rankp);
+        webpage_delete(pagep);
+        free(pagep);
+    }
+
+    qapply(qp, print_rank);
+
+    qclose(qp);
+    happly(htp, free_word);
+    hclose(htp);
+    free(str);
+}
+*/
