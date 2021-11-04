@@ -9,6 +9,7 @@
 #include "hash.h"
 #include "queue.h"
 
+
 char *string;
 
 typedef struct word {
