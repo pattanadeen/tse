@@ -4,11 +4,11 @@
 #include <dirent.h>
 #include <errno.h>
 
-#include "pageio.h"
-#include "webpage.h"
-#include "hash.h"
-#include "queue.h"
-#include "indexio.h"
+#include <pageio.h>
+#include <webpage.h>
+#include <hash.h>
+#include <queue.h>
+#include <indexio.h>
 
 static int sum;
 
