@@ -4,9 +4,9 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <ctype.h>
-#include "indexio.h"
-#include "hash.h"
-#include "queue.h"
+#include <indexio.h>
+#include <hash.h>
+#include <queue.h>
 
 char *string;
 

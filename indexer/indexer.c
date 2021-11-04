@@ -10,7 +10,7 @@
 #include "queue.h"
 #include "indexio.h"
 
-int sum;
+static int sum;
 
 //  *
 //  *  Step 3
@@ -61,7 +61,7 @@ bool search_word(void* elementp, const void* keyp){
     }
 }
 
-bool search_doc(void* elementp, const void* keyp){
+static bool search_doc(void* elementp, const void* keyp){
     if(keyp == NULL || elementp == NULL){
         printf("NULL value");
         return false;
