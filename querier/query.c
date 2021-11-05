@@ -74,6 +74,32 @@ static bool search_doc(void* elementp, const void* keyp){
     }
 }
 
+static int check_word(char* word, char* pword){
+    char* and = "and";
+    char* or = "or";
+    if (pword == NULL){
+        if ((strcmp(word, and) == 0) || (strcmp(word, or) == 0)){
+            return -1;
+        }
+        else{
+            return 0;
+        }
+    }
+    if ((strcmp(pword, and) == 0) || (strcmp(pword, or) == 0)){
+        if ((strcmp(word, and) == 0) || (strcmp(word, or) == 0)){
+            return -2;
+        }
+        else if (isalpha(word) != 0 || isspace(word)){
+            return 0;
+        }
+        else{
+            return -3;
+        }
+    }
+
+    return 0;
+}
+
 static void strip_extra_spaces(char* str) {
     int i, x;
 
@@ -206,7 +232,7 @@ int main(int argc, char *argv[]) {
 }
 */
 
-/*  Step 3
+// /*  Step 3
 int main(int argc, char *argv[]) {
     char *str = (char*) malloc(sizeof(char));
     char cha;
@@ -242,6 +268,7 @@ int main(int argc, char *argv[]) {
     queue_t *qp = qopen();
 
     const char s[2] = " ";
+    char *pword = NULL;
     int id;
     for (id = 1; id <= last_id; id++) {
         int rank = -1;
@@ -251,6 +278,11 @@ int main(int argc, char *argv[]) {
 
         while(word != NULL) {
             word_t *wordp = hsearch(htp, search_word, word, strlen(word));
+
+            if (check_word(word, pword) != 0){
+            printf("[invalid query]\n");
+            exit(EXIT_FAILURE);
+            }
 
             if (wordp == NULL) {
                 word = strtok(NULL, s);
@@ -270,6 +302,7 @@ int main(int argc, char *argv[]) {
                 rank = docp->count;
             }
 
+            pword = word;
             word = strtok(NULL, s);
         }
 
@@ -288,4 +321,4 @@ int main(int argc, char *argv[]) {
     hclose(htp);
     free(str);
 }
-*/
+// */
