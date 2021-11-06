@@ -89,8 +89,9 @@ static void strip_extra_spaces(char* str) {
 
 static int normalize_sentence(char *str) {
     if (str[0] == '\n') {
-        return 0;
+        return -1;
     }
+
     for (size_t i = 0; i < strlen(str); ++i) {
         if (isalpha(str[i]) != 0 || isspace(str[i])) {
             str[i] = tolower((unsigned char) str[i]);
@@ -345,6 +346,8 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         if (scanf("%c", &cha) == -1) {
+            printf("[invalid query]\n");
+
             free(str);
             exit(EXIT_SUCCESS);
         }
@@ -394,6 +397,7 @@ int main(int argc, char *argv[]) {
             }
 
             if (strcmp(word, "and") == 0) {
+                pword = word;
                 word = strtok(NULL, s);
 
                 if (word == NULL) {
@@ -413,6 +417,7 @@ int main(int argc, char *argv[]) {
                 rank = -1;
                 i++;
 
+                pword = word;
                 word = strtok(NULL, s);
 
                 if (word == NULL) {
