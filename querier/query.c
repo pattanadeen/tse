@@ -382,149 +382,153 @@ int main(int argc, char *argv[]) {
 }
 */
 
-// /*  Step 4
-// int main(int argc, char *argv[]) {
-//     char *str = (char *) malloc(sizeof(char));
-//     char cha;
-//     int i = 1;
+/*  Step 4
+int main(int argc, char *argv[]) {
+    char *str = (char *) malloc(sizeof(char));
+    char cha;
+    int i = 1;
 
-//     while (1) {
-//         if (scanf("%c", &cha) == -1) {
-//             printf("\n[invalid query]\n");
+    while (1) {
+        if (scanf("%c", &cha) == -1) {
+            printf("\n[invalid query]\n");
 
-//             free(str);
-//             exit(EXIT_SUCCESS);
-//         }
+            free(str);
+            exit(EXIT_SUCCESS);
+        }
 
-//         i++;
-//         str = (char *) realloc(str, sizeof(char) * i);
-//         str[i-2] = cha;
-//         str[i-1] = '\0';
+        i++;
+        str = (char *) realloc(str, sizeof(char) * i);
+        str[i-2] = cha;
+        str[i-1] = '\0';
 
-//         if (cha == '\n') {
-//             break;
-//         }            
-//     }
+        if (cha == '\n') {
+            break;
+        }            
+    }
 
-//     if (normalize_sentence(str) == -1) {
-//         printf("[invalid query]\n");
+    if (normalize_sentence(str) == -1) {
+        printf("[invalid query]\n");
 
-//         free(str);
-//         exit(EXIT_FAILURE);
-//     }
-//     else {
-//         printf("%s\n", str);
-//     }
+        free(str);
+        exit(EXIT_FAILURE);
+    }
+    else {
+        printf("%s\n", str);
+    }
 
-//     int last_id = 82;
-//     hashtable_t *htp = indexload("indexnm", "../indices/");
-//     queue_t *qp = qopen();
+    int last_id = 82;
+    hashtable_t *htp = indexload("indexnm", "../indices/");
+    queue_t *qp = qopen();
 
-//     const char s[2] = " ";
-//     char *pword = NULL;
-//     int id;
-//     for (id = 1; id <= last_id; id++) {
-//         int rank = -1;
-//         char sentence[strlen(str) + 1];
-//         strcpy(sentence, str);
-//         char *word = strtok(sentence, s);
-//         int *ranks = (int *) malloc(sizeof(int));
-//         int i = 1;
+    const char s[2] = " ";
+    char *pword = NULL;
+    int id;
+    for (id = 1; id <= last_id; id++) {
+        int rank = -1;
+        char sentence[strlen(str) + 1];
+        strcpy(sentence, str);
+        char *word = strtok(sentence, s);
+        int *ranks = (int *) malloc(sizeof(int));
+        int i = 1;
 
-//         while(word != NULL) {
-//             if (check_word(word, pword) != 0){
-//                 printf("[invalid query]\n");
+        while(word != NULL) {
+            if (check_word(word, pword) != 0){
+                printf("[invalid query]\n");
                 
-//                 free(ranks);
-//                 trap_exit(htp, qp, str);
-//                 exit(EXIT_FAILURE);
-//             }
+                free(ranks);
+                trap_exit(htp, qp, str);
+                exit(EXIT_FAILURE);
+            }
 
-//             if (strcmp(word, "and") == 0) {
-//                 pword = word;
-//                 word = strtok(NULL, s);
+            if (strcmp(word, "and") == 0) {
+                pword = word;
+                word = strtok(NULL, s);
 
-//                 if (word == NULL) {
-//                     printf("[invalid query]\n");
+                if (word == NULL) {
+                    printf("[invalid query]\n");
 
-//                     free(ranks);
-//                     trap_exit(htp, qp, str);
-//                     exit(EXIT_FAILURE);
-//                 }
-//                 else {
-//                     continue;
-//                 }
-//             }
-//             else if (strcmp(word, "or") == 0) {
-//                 ranks = (int *) realloc(ranks, sizeof(int) * i);
-//                 ranks[i - 1] = rank;
-//                 rank = -1;
-//                 i++;
+                    free(ranks);
+                    trap_exit(htp, qp, str);
+                    exit(EXIT_FAILURE);
+                }
+                else {
+                    printf("PWORD %s\n", pword);
+                    continue;
+                    
+                }
+            }
+            else if (strcmp(word, "or") == 0) {
+                ranks = (int *) realloc(ranks, sizeof(int) * i);
+                ranks[i - 1] = rank;
+                rank = -1;
+                i++;
 
-//                 pword = word;
-//                 word = strtok(NULL, s);
+                pword = word;
+                word = strtok(NULL, s);
 
-//                 if (word == NULL) {
-//                     printf("[invalid query]\n");
+                if (word == NULL) {
+                    printf("[invalid query]\n");
 
-//                     trap_exit(htp, qp, str);
-//                     exit(EXIT_FAILURE);
-//                 }
-//                 else {
-//                     continue;
-//                 }
-//             }
+                    trap_exit(htp, qp, str);
+                    exit(EXIT_FAILURE);
+                }
+                else {
+                    continue;
+                }
+            }
 
-//             word_t *wordp = hsearch(htp, search_word, word, strlen(word));
+            word_t *wordp = hsearch(htp, search_word, word, strlen(word));
 
-//             if (wordp == NULL) {
-//                 word = strtok(NULL, s);
-//                 rank = 0;
-//                 continue;
-//             }
+            if (wordp == NULL) {
+                pword = word;
+                word = strtok(NULL, s);
+                rank = 0;
+                continue;
+            }
 
-//             doc_t *docp = qsearch(wordp->qdocument, search_doc, &id);
+            doc_t *docp = qsearch(wordp->qdocument, search_doc, &id);
 
-//             if (docp == NULL) {
-//                 word = strtok(NULL, s);
-//                 rank = 0;
-//                 continue;
-//             }
+            if (docp == NULL) {
+                pword = word;
+                word = strtok(NULL, s);
+                rank = 0;
+                continue;
+            }
 
-//             if (rank == -1 || docp->count < rank) {
-//                 rank = docp->count;
-//             }
+            if (rank == -1 || docp->count < rank) {
+                rank = docp->count;
+            }
 
-//             pword = word;
-//             word = strtok(NULL, s);
-//         }
+            pword = word;
+            word = strtok(NULL, s);
+        }
 
-//         rank += sum_array(ranks, i - 1);
+        rank += sum_array(ranks, i - 1);
 
-//         webpage_t *pagep = pageload(id, "../pages-depth3/");
-//         rank_t *rankp = make_rank(rank, id, webpage_getURL(pagep));
-//         qput(qp, rankp);
+        webpage_t *pagep = pageload(id, "../pages-depth3/");
+        rank_t *rankp = make_rank(rank, id, webpage_getURL(pagep));
+        qput(qp, rankp);
 
-//         webpage_delete(pagep);
-//         free(pagep);
-//         free(ranks);
-//     }
+        webpage_delete(pagep);
+        free(pagep);
+        free(ranks);
+    }
 
-//     sum = 0;
-//     qapply(qp, sum_rank);
-//     if (sum == 0) {
-//         printf("[invalid query]\n");
-//     }
-//     else {
-//         qapply(qp, print_rank);
-//     }
+    sum = 0;
+    qapply(qp, sum_rank);
+    if (sum == 0) {
+        printf("[invalid query]\n");
+    }
+    else {
+        qapply(qp, print_rank);
+    }
 
-//     trap_exit(htp, qp, str);
-//     exit(EXIT_SUCCESS);
-// }
-// */
+    trap_exit(htp, qp, str);
+    exit(EXIT_SUCCESS);
+}
+*/
 
-// step 5
+// /* step 5
 int main(int argc, char *argv[]) {
     // if(argv[3] == "q"){
 
@@ -780,3 +784,4 @@ int main(int argc, char *argv[]) {
     trap_exit(htpq, qp, str);
     exit(EXIT_SUCCESS);
 }
+// */
