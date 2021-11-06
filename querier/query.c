@@ -545,8 +545,8 @@ int main(int argc, char *argv[]) {
     char *indexnm = argv[2];
     char pagedir[16];
     sprintf(pagedir, "%s%s%s", "../", pagedir_temp, "/");
-    printf("%s\n", pagedir);
-    printf("%s\n", indexnm);
+    // printf("%s\n", pagedir);
+    // printf("%s\n", indexnm);
     
     hashtable_t *htp = hopen(10);
 
@@ -556,22 +556,44 @@ int main(int argc, char *argv[]) {
     d = opendir(pagedir);
 
     if (d) {
-        printf("exist");
+        printf("directory exist\n");
     } else if (ENOENT == errno) {
-        printf("not exist");
-        return -2;
+        printf("directory does not exist\n");
+        closedir(d);
+        happly(htp, free_word);
+        hclose(htp);
+        exit(EXIT_FAILURE);
     } else {
-        return -1;
-        printf("failed exist");
+        printf("Directory is not accessible\n");
+        closedir(d);
+        happly(htp, free_word);
+        hclose(htp);
+        exit(EXIT_FAILURE);
     }
 
-    if(d){
+    if (d){
         while ((dir = readdir(d)) != NULL){
             count++;
         }
     }
     count = count - 2;
     int i = 1;
+
+    if(count == 0){
+        printf("Directory is empty or has not been crawled\n");
+        closedir(d);
+        happly(htp, free_word);
+        hclose(htp);
+        exit(EXIT_FAILURE);
+    }
+    
+    if(access(indexnm, R_OK )){
+        printf("The File %s cannot be read\n",indexnm);
+        closedir(d);
+        happly(htp, free_word);
+        hclose(htp);
+        exit(EXIT_FAILURE);
+    }
 
     if (d){
         while (i != count+1){
@@ -614,6 +636,7 @@ int main(int argc, char *argv[]) {
         }
             closedir(d); 
     }   
+
 
     indexsave(htp, indexnm, "../indices/");
 
