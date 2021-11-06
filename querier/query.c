@@ -34,6 +34,13 @@ static rank_t *make_rank(int rank, int id, char *url) {
     return rankp;
 }
 
+int sum;
+
+static void sum_rank(void *elementp) {
+    rank_t *rankp = (rank_t *) elementp;
+    sum += rankp->rank;
+}
+
 static void print_rank(void *elementp) {
     rank_t *rankp = (rank_t *) elementp;
     printf("rank: %d: doc: %d : %s\n", rankp->rank, rankp->id, rankp->url);
@@ -346,7 +353,7 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         if (scanf("%c", &cha) == -1) {
-            printf("[invalid query]\n");
+            printf("\n[invalid query]\n");
 
             free(str);
             exit(EXIT_SUCCESS);
@@ -466,7 +473,14 @@ int main(int argc, char *argv[]) {
         free(ranks);
     }
 
-    qapply(qp, print_rank);
+    sum = 0;
+    qapply(qp, sum_rank);
+    if (sum == 0) {
+        printf("[invalid query]\n");
+    }
+    else {
+        qapply(qp, print_rank);
+    }
 
     trap_exit(htp, qp, str);
     exit(EXIT_SUCCESS);
