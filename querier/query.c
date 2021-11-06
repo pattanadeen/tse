@@ -133,12 +133,6 @@ static int check_word(char* word, char* pword){
         if ((strcmp(word, and) == 0) || (strcmp(word, or) == 0)){
             return -2;
         }
-        else if (isalpha(word) != 0 || isspace(word)){
-            return 0;
-        }
-        else{
-            return -3;
-        }
     }
 
     return 0;
@@ -587,13 +581,6 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
     
-    if(access(indexnm, R_OK )){
-        printf("The File %s cannot be read\n",indexnm);
-        closedir(d);
-        happly(htp, free_word);
-        hclose(htp);
-        exit(EXIT_FAILURE);
-    }
 
     if (d){
         while (i != count+1){
@@ -677,6 +664,14 @@ int main(int argc, char *argv[]) {
         printf("%s\n", str);
     }
 
+    if(!access(indexnm, R_OK )){
+        printf("The File %s cannot be read\n",indexnm);
+        closedir(d);
+        happly(htp, free_word);
+        hclose(htp);
+        exit(EXIT_FAILURE);
+    }
+
     int last_id = 82;
     hashtable_t *htpq = indexload(indexnm, "../indices/");
     queue_t *qp = qopen();
@@ -739,6 +734,7 @@ int main(int argc, char *argv[]) {
             word_t *wordp = hsearch(htpq, search_word, word, strlen(word));
 
             if (wordp == NULL) {
+                pword = word;
                 word = strtok(NULL, s);
                 rank = 0;
                 continue;
@@ -747,6 +743,7 @@ int main(int argc, char *argv[]) {
             doc_t *docp = qsearch(wordp->qdocument, search_doc, &id);
 
             if (docp == NULL) {
+                pword = word;
                 word = strtok(NULL, s);
                 rank = 0;
                 continue;
