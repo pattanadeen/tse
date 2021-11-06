@@ -74,32 +74,6 @@ static bool search_doc(void* elementp, const void* keyp){
     }
 }
 
-static int check_word(char* word, char* pword){
-    char* and = "and";
-    char* or = "or";
-    if (pword == NULL){
-        if ((strcmp(word, and) == 0) || (strcmp(word, or) == 0)){
-            return -1;
-        }
-        else{
-            return 0;
-        }
-    }
-    if ((strcmp(pword, and) == 0) || (strcmp(pword, or) == 0)){
-        if ((strcmp(word, and) == 0) || (strcmp(word, or) == 0)){
-            return -2;
-        }
-        else if (isalpha(word) != 0 || isspace(word)){
-            return 0;
-        }
-        else{
-            return -3;
-        }
-    }
-
-    return 0;
-}
-
 static void strip_extra_spaces(char* str) {
     int i, x;
 
@@ -129,6 +103,51 @@ static int normalize_sentence(char *str) {
     strip_extra_spaces(str);
 
     return 0;
+}
+
+static int check_word(char* word, char* pword){
+    char* and = "and";
+    char* or = "or";
+
+    if (pword == NULL){
+        if ((strcmp(word, and) == 0) || (strcmp(word, or) == 0)){
+            return -1;
+        }
+        else{
+            return 0;
+        }
+    }
+
+    if ((strcmp(pword, and) == 0) || (strcmp(pword, or) == 0)){
+        if ((strcmp(word, and) == 0) || (strcmp(word, or) == 0)){
+            return -2;
+        }
+        else if (isalpha(word) != 0 || isspace(word)){
+            return 0;
+        }
+        else{
+            return -3;
+        }
+    }
+
+    return 0;
+}
+
+static int sum_array(int *arr, int size) {
+    int sum = 0, i;
+
+    for(i = 0; i < size; i++) {
+        sum += arr[i];
+    }          
+
+    return sum;
+}
+
+static void trap_exit(hashtable_t *htp, queue_t *qp, char *str) {
+    qclose(qp);
+    happly(htp, free_word);
+    hclose(htp);
+    free(str);
 }
 
 /*  Step 1
@@ -232,7 +251,7 @@ int main(int argc, char *argv[]) {
 }
 */
 
-// /*  Step 3
+/*  Step 3
 int main(int argc, char *argv[]) {
     char *str = (char*) malloc(sizeof(char));
     char cha;
@@ -279,11 +298,6 @@ int main(int argc, char *argv[]) {
         while(word != NULL) {
             word_t *wordp = hsearch(htp, search_word, word, strlen(word));
 
-            if (check_word(word, pword) != 0){
-            printf("[invalid query]\n");
-            exit(EXIT_FAILURE);
-            }
-
             if (wordp == NULL) {
                 word = strtok(NULL, s);
                 rank = 0;
@@ -320,5 +334,123 @@ int main(int argc, char *argv[]) {
     happly(htp, free_word);
     hclose(htp);
     free(str);
+}
+*/
+
+// /*  Step 4
+int main(int argc, char *argv[]) {
+    char *str = (char *) malloc(sizeof(char));
+    char cha;
+    int i = 1;
+
+    while (1) {
+        if (scanf("%c", &cha) == -1) {
+            free(str);
+            exit(EXIT_SUCCESS);
+        }
+
+        i++;
+        str = (char *) realloc(str, sizeof(char) * i);
+        str[i-2] = cha;
+        str[i-1] = '\0';
+
+        if (cha == '\n') {
+            break;
+        }            
+    }
+
+    if (normalize_sentence(str) == -1) {
+        printf("[invalid query]\n");
+
+        free(str);
+        exit(EXIT_FAILURE);
+    }
+    else {
+        printf("%s\n", str);
+    }
+
+    int last_id = 82;
+    hashtable_t *htp = indexload("indexnm", "../indices/");
+    queue_t *qp = qopen();
+
+    const char s[2] = " ";
+    char *pword = NULL;
+    int id;
+    for (id = 1; id <= last_id; id++) {
+        int rank = -1;
+        char sentence[strlen(str) + 1];
+        strcpy(sentence, str);
+        char *word = strtok(sentence, s);
+        int *ranks = (int *) malloc(sizeof(int));
+        int i = 1;
+
+        while(word != NULL) {
+            if (check_word(word, pword) != 0){
+                printf("[invalid query]\n");
+                
+                trap_exit(htp, qp, str);
+                exit(EXIT_FAILURE);
+            }
+
+            if (strcmp(word, "and") == 0) {
+                word = strtok(NULL, s);
+                continue;
+            }
+            else if (strcmp(word, "or") == 0) {
+                ranks = (int *) realloc(ranks, sizeof(int) * i);
+                ranks[i - 1] = rank;
+                rank = -1;
+                i++;
+
+                word = strtok(NULL, s);
+                continue;
+            }
+
+            word_t *wordp = hsearch(htp, search_word, word, strlen(word));
+
+            if (wordp == NULL) {
+                word = strtok(NULL, s);
+                rank = 0;
+                continue;
+            }
+
+            doc_t *docp = qsearch(wordp->qdocument, search_doc, &id);
+
+            if (docp == NULL) {
+                word = strtok(NULL, s);
+                rank = 0;
+                continue;
+            }
+
+            if (rank == -1 || docp->count < rank) {
+                rank = docp->count;
+            }
+
+            pword = word;
+            word = strtok(NULL, s);
+
+            if ((strcmp(pword, "and") == 0 || strcmp(pword, "or") == 0) && word == NULL) {
+                printf("[invalid query]\n");
+
+                trap_exit(htp, qp, str);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        rank += sum_array(ranks, i - 1);
+
+        webpage_t *pagep = pageload(id, "../pages-depth3/");
+        rank_t *rankp = make_rank(rank, id, webpage_getURL(pagep));
+        qput(qp, rankp);
+
+        webpage_delete(pagep);
+        free(pagep);
+        free(ranks);
+    }
+
+    qapply(qp, print_rank);
+
+    trap_exit(htp, qp, str);
+    exit(EXIT_SUCCESS);
 }
 // */
