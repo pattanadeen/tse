@@ -388,13 +388,24 @@ int main(int argc, char *argv[]) {
             if (check_word(word, pword) != 0){
                 printf("[invalid query]\n");
                 
+                free(ranks);
                 trap_exit(htp, qp, str);
                 exit(EXIT_FAILURE);
             }
 
             if (strcmp(word, "and") == 0) {
                 word = strtok(NULL, s);
-                continue;
+
+                if (word == NULL) {
+                    printf("[invalid query]\n");
+
+                    free(ranks);
+                    trap_exit(htp, qp, str);
+                    exit(EXIT_FAILURE);
+                }
+                else {
+                    continue;
+                }
             }
             else if (strcmp(word, "or") == 0) {
                 ranks = (int *) realloc(ranks, sizeof(int) * i);
@@ -403,7 +414,16 @@ int main(int argc, char *argv[]) {
                 i++;
 
                 word = strtok(NULL, s);
-                continue;
+
+                if (word == NULL) {
+                    printf("[invalid query]\n");
+
+                    trap_exit(htp, qp, str);
+                    exit(EXIT_FAILURE);
+                }
+                else {
+                    continue;
+                }
             }
 
             word_t *wordp = hsearch(htp, search_word, word, strlen(word));
@@ -428,13 +448,6 @@ int main(int argc, char *argv[]) {
 
             pword = word;
             word = strtok(NULL, s);
-
-            if ((strcmp(pword, "and") == 0 || strcmp(pword, "or") == 0) && word == NULL) {
-                printf("[invalid query]\n");
-
-                trap_exit(htp, qp, str);
-                exit(EXIT_FAILURE);
-            }
         }
 
         rank += sum_array(ranks, i - 1);
