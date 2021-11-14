@@ -1,7 +1,7 @@
 CFLAGS=-Wall -pedantic -std=c11 -I ../utils/ -L ../lib/ -g
 LIBS=-lutils -lcurl -lpthread 
 
-all:			test_pageio test_indexio test_lqueue
+all:			test_pageio test_indexio test_lqueue test_lhash
 
 test_pageio:	test_pageio.c 
 				gcc $(CFLAGS) test_pageio.c $(LIBS) -o $@
@@ -12,5 +12,8 @@ test_indexio:	test_indexio.c
 test_lqueue:	test_lqueue.c
 				gcc $(CFLAGS) test_lqueue.c $(LIBS) -o $@
 
+test_lhash:		test_lhash.c
+				gcc $(CFLAGS) test_lhash.c $(LIBS) -o $@
+
 clean:
-				rm -f *.o test_pageio test_indexio test_lqueue
+				rm -f *.o test_pageio test_indexio test_lqueue test_lhash
