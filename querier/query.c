@@ -530,13 +530,11 @@ int main(int argc, char *argv[]) {
 
 // /* step 5
 int main(int argc, char *argv[]) {
-    // if(argv[3] == "q"){
-
-    //     exit(EXIT_SUCCESS);
-    // }
-    if(argc!=3 || argv[1] == NULL || argv[2] == NULL){
-        printf("usage: indexer <pagedir> <indexnm> [-q]\n");
-        exit(EXIT_FAILURE);
+    if(argc != 4){
+        if(argc!=3 || argv[1] == NULL || argv[2] == NULL){
+            printf("usage: indexer <pagedir> <indexnm> [-q]\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     char *pagedir_temp = argv[1];
@@ -589,7 +587,7 @@ int main(int argc, char *argv[]) {
     if (d){
         while (i != count+1){
             // printf("%s\n", dir->d_name);
-            printf("%d\n", i);
+            // printf("%d\n", i);
 
             webpage_t *pagep = pageload(i, pagedir);
             char *word;
@@ -665,7 +663,21 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
     else {
-        printf("%s\n", str);
+        if(argc == 4){
+            if(strcmp(argv[3], "-q") == 0){
+                // printf("load quietly...\n");
+
+                // free(str);
+                // exit(EXIT_SUCCESS);
+            }else{
+                printf("usage: indexer <pagedir> <indexnm> [-q]\n");
+
+                free(str);
+                exit(EXIT_SUCCESS);
+            }
+        }else{
+            printf("%s\n", str);
+        }
     }
 
     if(!access(indexnm, R_OK )){
@@ -775,10 +787,24 @@ int main(int argc, char *argv[]) {
     sum = 0;
     qapply(qp, sum_rank);
     if (sum == 0) {
-        printf("[invalid query]\n");
+        printf("[invalid query] [not found]\n");
     }
     else {
-        qapply(qp, print_rank);
+        if(argc == 4){
+            if(strcmp(argv[3], "-q") == 0){
+                printf("load quietly...\n");
+
+                free(str);
+                exit(EXIT_SUCCESS);
+            }else{
+                printf("usage: indexer <pagedir> <indexnm> [-q]\n");
+
+                free(str);
+                exit(EXIT_SUCCESS);
+            }
+        }else{
+            qapply(qp, print_rank);
+        }
     }
 
     trap_exit(htpq, qp, str);
