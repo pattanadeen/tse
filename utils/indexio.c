@@ -7,6 +7,7 @@
 
 #include "indexio.h"
 #include "hash.h"
+#include "lhash.h"
 #include "queue.h"
 
 
@@ -81,6 +82,34 @@ int32_t indexsave(hashtable_t *htp, char *indexnm, char *dirnm) {
     return 0;
 }
 
+int32_t lindexsave(hashtable_t *lhtp, char *indexnm, char *dirnm) {
+    char filename[strlen(dirnm)];
+    sprintf(filename, "%s%s", dirnm, indexnm);
+    // int result = access(filename, F_OK);
+
+    // if (result == 0) {
+    //     printf("File already exist in the directory!!\n");
+    //     return -1;
+    // }
+
+    FILE * fp;
+    fp = fopen(filename, "w");
+
+    string = (char*) calloc(1, sizeof(char));
+    lhapply(lhtp, save_word);
+    
+    size_t ln = strlen(string) - 1;
+    if (*string && string[ln] == '\n') 
+    string[ln] = '\0';
+    
+    fprintf(fp, "%s", string);
+
+    fclose(fp);
+    free(string);
+
+    return 0;
+}
+
 hashtable_t *indexload(char *indexnm, char*dirnm){
     char filename[16];
     sprintf(filename, "%s%s", dirnm, indexnm);
@@ -129,3 +158,4 @@ hashtable_t *indexload(char *indexnm, char*dirnm){
     fclose(fp);
     return ht;
 }
+

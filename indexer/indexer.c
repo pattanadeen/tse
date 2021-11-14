@@ -3,10 +3,11 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include <pageio.h>
 #include <webpage.h>
-#include <hash.h>
+#include <lhash.h>
 #include <queue.h>
 #include <indexio.h>
 
@@ -132,6 +133,82 @@ int NormalizeWord(char *word){
 
     return 0;
 }
+
+typedef struct arguments {
+    lhashtable_t *lhtp;
+    int i;
+    char pagedir[16];
+} arguments_t;
+
+void * routine_index(void * thread_nr) {
+    arguments_t *args = (arguments_t *) thread_nr;
+
+    printf("id: %d\n", args->i);
+
+    webpage_t *pagep = pageload(args->i, args->pagedir);
+    char *word;
+    int pos = 0;
+
+    while ((pos = webpage_getNextWord(pagep, pos, &word)) > 0){
+        if(NormalizeWord(word) == 0){
+            word_t *words = lhsearch(args->lhtp, search_word, word, strlen(word));
+            doc_t *document;
+            if(words != NULL){
+                if ((document = (doc_t *) qsearch(words->qdocument, search_doc, &(args->i))) != NULL) {
+                    document->count = document->count + 1;
+                }
+                else {
+                    qput(words->qdocument, make_doc(args->i, 1));
+                }
+                free(word);
+            }
+            else {
+                word_t *wordp = malloc(sizeof(word_t));
+                wordp->word = word;
+                wordp->qdocument = qopen();
+
+                qput(wordp->qdocument, make_doc(args->i, 1));
+                lhput(args->lhtp, (void *) wordp, word, strlen(word));
+            }
+        } else {
+            free(word);
+        }
+    }
+    webpage_delete(pagep);
+    free(pagep);
+    free(word);
+    free(args);
+    
+    return NULL;
+}
+
+// void * routine_test(void * thread_nr) {
+//     arguments_t *args = (arguments_t *) thread_nr;
+
+//     printf("i: %d\n", args->i);
+
+//     webpage_t *pagep = pageload(args->i, args->pagedir);
+//     char *word;
+//     int pos = 0;
+
+//     while ((pos = webpage_getNextWord(pagep, pos, &word)) > 0) {
+//         printf("%s\n", word);
+//         if (NormalizeWord(word) == 0) {
+//             word_t *words = lhsearch(args->lhtp, search_word, word, strlen(word));
+//             doc_t *document;
+//         }
+//         else {
+//             free(word);
+//         }
+//     }
+
+//     webpage_delete(pagep);
+//     free(pagep);
+//     free(word);
+
+//     return NULL;
+//     // pthread_exit(NULL);
+// }
 
 int main(int argc, char *argv[]) {
 
@@ -329,19 +406,20 @@ int main(int argc, char *argv[]) {
     */
 
     // /*  Module 7
-    if(argc!=3 || argv[1] == NULL || argv[2] == NULL){
-        printf("usage: indexer <pagedir> <indexnm>\n");
+    if(argc!=4 || argv[1] == NULL || argv[2] == NULL || argv[3] == NULL){
+        printf("usage: indexer <pagedir> <indexnm> <num thread>\n");
         exit(EXIT_FAILURE);
     }
 
     char *pagedir_temp = argv[1];
     char *indexnm = argv[2];
+    int num_threads = atoi(argv[3]);
     char pagedir[16];
     sprintf(pagedir, "%s%s%s", "../", pagedir_temp, "/");
     printf("%s\n", pagedir);
     printf("%s\n", indexnm);
     
-    hashtable_t *htp = hopen(10);
+    hashtable_t *lhtp = lhopen(10);
 
     int count = 0;
     DIR *d;
@@ -349,13 +427,13 @@ int main(int argc, char *argv[]) {
     d = opendir(pagedir);
 
     if (d) {
-        printf("exist");
+        printf("exist\n");
     } else if (ENOENT == errno) {
-        printf("not exist");
+        printf("not exist\n");
         return -2;
     } else {
         return -1;
-        printf("failed exist");
+        printf("failed exist\n");
     }
 
     if(d){
@@ -366,52 +444,51 @@ int main(int argc, char *argv[]) {
     count = count - 2;
     int i = 1;
 
-    if (d){
+    if (d) {
         while (i != count+1){
-            // printf("%s\n", dir->d_name);
-            printf("%d\n", i);
+            int max_thread, id = i;
 
-            webpage_t *pagep = pageload(i, pagedir);
-            char *word;
-            int pos = 0;
+            if ((float) count / (float) (i + num_threads - 1) < 1.0) {
+                max_thread = count % num_threads;
+            }
+            else {
+                max_thread = num_threads;
+            }
 
-            while ((pos = webpage_getNextWord(pagep, pos, &word)) > 0){
-                if(NormalizeWord(word) == 0){
-                    word_t *words = hsearch(htp, search_word, word, strlen(word));
-                    doc_t *document;
-                    if(words != NULL){
-                        if ((document = (doc_t *) qsearch(words->qdocument, search_doc, &i)) != NULL) {
-                            document->count = document->count + 1;
-                        }
-                        else {
-                            qput(words->qdocument, make_doc(i, 1));
-                        }
-                        free(word);
-                    }
-                    else{
-                        word_t *wordp = malloc(sizeof(word_t));
-                        wordp->word = word;
-                        wordp->qdocument = qopen();
+            pthread_t thread[max_thread];
+            arguments_t *temp_arg[max_thread];
 
-                        qput(wordp->qdocument, make_doc(i, 1));
-                        hput(htp, (void *) wordp, word, strlen(word));
-                    }
-                } else {
-                    free(word);
+            for (int current_t = 0; current_t < max_thread; current_t++) {
+                arguments_t *arg = malloc(sizeof(arguments_t));
+                arg->i = id;
+                arg->lhtp = lhtp;
+                strcpy(arg->pagedir, pagedir);
+
+                temp_arg[current_t] = arg;
+
+                if(pthread_create(&thread[current_t], NULL, routine_index, temp_arg[current_t])!=0) {
+                    exit(EXIT_FAILURE);
+                }
+
+                id++;
+            }
+
+            for (int current_t = 0; current_t < max_thread; current_t++) {
+                if (pthread_join(thread[current_t], NULL)!=0) {
+                    exit(EXIT_FAILURE);
                 }
             }
-            webpage_delete(pagep);
-            free(pagep);
-            free(word);
-            i++;
+
+            i += max_thread;
         }
-            closedir(d); 
+
+        closedir(d); 
     }   
 
-    indexsave(htp, indexnm, "../indices/");
+    lindexsave(lhtp, indexnm, "../indices/");
 
-    happly(htp, free_word);
-    hclose(htp);
+    lhapply(lhtp, free_word);
+    lhclose(lhtp);
 
     exit(EXIT_SUCCESS);
     // */  
